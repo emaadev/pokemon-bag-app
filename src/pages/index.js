@@ -1,16 +1,12 @@
 import Head from "next/head";
-
-import { Inter, Island_Moments } from "next/font/google";
-import styles from "@/styles/Home.module.css";
-import axios from "axios";
-const inter = Inter({ subsets: ["latin"] });
 import { useEffect, useState } from "react";
+
+import axios from "axios";
 import {
   Container,
   Stack,
-  Input,
   Button,
-  SimpleGrid,
+  Text,
   Flex,
   Box,
   Modal,
@@ -20,77 +16,265 @@ import {
   ModalContent,
   ModalCloseButton,
   useDisclosure,
+  useToast,
 } from "@chakra-ui/react";
 import PokemonCard from "@/components/PokemonCard";
 import PokemonData from "@/components/PokemonData";
+import Loader from "@/components/Loader";
 
 export default function Home() {
   const pokemonDataModal = useDisclosure();
+  const toast = useToast();
 
   const [isLoading, setIsLoading] = useState(false);
   const [pokemon, setPokemon] = useState([]);
   const [selectedPokemon, setSelectedPokemon] = useState();
-  const [currentPage, setCurrentPage] = useState(
-    "https://pokeapi.co/api/v2/pokemon/?limit=20&offset=0"
-  );
+  const [catchedPokemons, setCatchedPokemons] = useState([]);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const pokemonsPerPage = 20;
+  const API_URL = `https://pokeapi.co/api/v2/pokemon/?limit=${pokemonsPerPage}&offset=${
+    (currentPage - 1) * pokemonsPerPage
+  }`;
 
   useEffect(() => {
-    setIsLoading(true);
-    axios.get(currentPage).then(async ({ data }) => {
-      const promises = data.results.map((result) => axios(result.url));
-      const fetchedPokemon = (await Promise.all(promises)).map(
-        (res) => res.data
-      );
-      setPokemon((prev) => [...prev, ...fetchedPokemon]);
-      setIsLoading(false);
-    });
+    async function fetchData() {
+      try {
+        setIsLoading(true);
+
+        const response = await axios.get(API_URL);
+        const promises = response.data.results.map((result) =>
+          axios(result.url)
+        );
+        const fetchedPokemon = (await Promise.all(promises)).map(
+          (res) => res.data
+        );
+
+        setPokemon((prev) => [...prev, ...fetchedPokemon]);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    setPokemon([]);
+    fetchData();
   }, [currentPage]);
 
-  function handleNextPage() {}
+  // Extra: Crear la paginación de pokemones ☑️
+  function handleNextPage() {
+    setCurrentPage((prev) => prev + 1);
+  }
+
+  function handlePrevPage() {
+    setCurrentPage((prev) => prev - 1);
+  }
 
   function handleViewPokemon(pokemon) {
     setSelectedPokemon(pokemon);
     pokemonDataModal.onOpen();
   }
 
+  // TODO: Capturar el pokemon seleccionado ☑️
+  async function capturePokemon(pokemon) {
+    try {
+      const response = await axios.post("/api/catched", {
+        id: pokemon.id,
+        name: pokemon.name,
+      });
+
+      if (response.status === 200) {
+        console.log("Pokemon catched succesfully:", response.data);
+        toast({
+          title: "Pokemon catched!",
+          description: `You've catched your ${pokemon?.name}`,
+          status: "success",
+          duration: 3000,
+          isClosable: false,
+        });
+      } else {
+        console.error(
+          "An error has ocurred while capturing Pokemon:",
+          response.data
+        );
+        toast({
+          title: "Something went wrong!",
+          description: "Please try again later.",
+          status: "error",
+          duration: 3000,
+          isClosable: false,
+        });
+      }
+    } catch (error) {
+      console.error("Server internal error:", error);
+    }
+  }
+
+  // TODO: Liberar el pokemon seleccionado ☑️
+  async function releasePokemon(pokemonId) {
+    try {
+      const response = await axios.delete(`/api/catched/${pokemonId}`);
+      if (response.status === 200) {
+        console.log("Pokemon released succesfully");
+        toast({
+          title: "Pokemon released!",
+          description: `You've released your pokemon ${pokemonId?.name}`,
+          variant: "solid",
+          duration: 3000,
+          isClosable: false,
+        });
+      } else {
+        console.error("Error while releasing pokemon:", response.data);
+        toast({
+          title: "Something went wrong!",
+          description: "Please try again later.",
+          status: "error",
+          duration: 3000,
+          isClosable: false,
+        });
+      }
+    } catch (error) {
+      console.error("Server internal error:", error);
+    }
+  }
+
+  // TODO: Evaluar si el pokemon ya está capturado para actualizar la `UI` ☑️
+  useEffect(() => {
+    async function getCatchedPokemons() {
+      try {
+        const response = await axios.get("/api/catched");
+        if (response.status === 200) {
+          setCatchedPokemons(response.data);
+        } else {
+          console.error("Error while releasing pokemon:", response.data);
+        }
+      } catch (error) {
+        console.error("Server internal error:", error);
+      }
+    }
+
+    getCatchedPokemons();
+  }, [pokemonDataModal]);
+
   return (
     <>
       <Head>
-        <title>Pokemon Challenge</title>
+        <title>PokemonBag</title>
         <meta name="description" content="Generated by create next app" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Flex alignItems="center" minH="100vh" justifyContent="center">
-        <Container maxW="container.lg">
-          <Stack p="5" alignItems="center" spacing="5">
-            <SimpleGrid spacing="5" columns={{ base: 1, md: 5 }}>
-              {pokemon.map((pokemon) => (
-                <Box
-                  as="button"
-                  key={pokemon.id}
-                  onClick={() => handleViewPokemon(pokemon)}
-                >
-                  <PokemonCard pokemon={pokemon} />
-                </Box>
-              ))}
-            </SimpleGrid>
 
-            <Button isLoading={false} onClick={handleNextPage}>
-              Cargas más
-            </Button>
-          </Stack>
+      <Flex
+        backgroundColor="#f5f5f5"
+        alignItems="center"
+        minH="100vh"
+        justifyContent="center"
+      >
+        <Container maxW="container.lg">
+          <Box margin="30px 20px" maxWidth="600px">
+            <Text fontSize="30px" fontWeight="700">
+              Welcome back to your PokemonBag!
+            </Text>
+            <Text fontSize="20px">
+              On this page, you will find all the tools and items needed to
+              become a master Pokemon trainer.
+            </Text>
+          </Box>
+
+          {isLoading ? (
+            <Loader />
+          ) : (
+            <Stack p="5" alignItems="center" spacing="5">
+              <Flex
+                w="100%"
+                alignItems="center"
+                justifyContent="center"
+                gap="20px"
+                flexWrap="wrap"
+              >
+                {pokemon.map((pokemon) => (
+                  <Box
+                    minWidth="200px"
+                    as="button"
+                    key={pokemon.id}
+                    onClick={() => handleViewPokemon(pokemon)}
+                  >
+                    <PokemonCard pokemon={pokemon} />
+                  </Box>
+                ))}
+              </Flex>
+
+              <Flex gap="20px">
+                {!isLoading && currentPage !== 1 && (
+                  <Button
+                    colorScheme="teal"
+                    variant="outline"
+                    borderColor="#7f2f19"
+                    color="#7f2f19"
+                    onClick={handlePrevPage}
+                  >
+                    ⬅ Prev Page
+                  </Button>
+                )}
+
+                <Flex
+                  w="20px"
+                  h="20px"
+                  alignItems="center"
+                  justifyContent="center"
+                  backgroundColor="#7f2f19"
+                  borderRadius="5px"
+                  p="5"
+                  margin="auto"
+                  color="#fff"
+                >
+                  {currentPage}
+                </Flex>
+
+                {!isLoading && (
+                  <Button
+                    colorScheme="teal"
+                    variant="outline"
+                    borderColor="#7f2f19"
+                    color="#7f2f19"
+                    onClick={handleNextPage}
+                  >
+                    Next Page ➡
+                  </Button>
+                )}
+              </Flex>
+            </Stack>
+          )}
         </Container>
       </Flex>
+
       <Modal {...pokemonDataModal}>
         <ModalOverlay />
-        <ModalContent>
+        <ModalContent backgroundImage="linear-gradient(62deg, #ef6f4b 0%, #F7CE68 100%)">
           <ModalHeader textTransform="capitalize">
-            {selectedPokemon?.name}
+            <Text
+              fontSize="35px"
+              fontWeight="700"
+              marginTop="20px"
+              color="#fff"
+            >
+              {selectedPokemon?.name}
+            </Text>
           </ModalHeader>
-          <ModalCloseButton />
+
+          <ModalCloseButton color="#fff" />
+
           <ModalBody>
-            {selectedPokemon && <PokemonData pokemon={selectedPokemon} />}
+            {selectedPokemon && (
+              <PokemonData
+                pokemon={selectedPokemon}
+                capturePokemon={capturePokemon}
+                releasePokemon={releasePokemon}
+                catchedPokemons={catchedPokemons}
+              />
+            )}
           </ModalBody>
         </ModalContent>
       </Modal>

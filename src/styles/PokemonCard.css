@@ -1,0 +1,52 @@
+.card {
+    position: relative;
+    transition: 0.5s;
+    cursor: pointer;
+    color: #fff;
+    /* background: linear-gradient(-45deg, #efba292b, #c11117d1); */
+    background-color: #e48b58;
+    /* background-image: linear-gradient(62deg, #ef6f4b 0%, #F7CE68 100%); */
+
+    box-shadow: 3px 3px 4px 1px rgba(87, 19, 19, 0.565);
+    background-image: url("/cine.png");
+    background-position: 110px 10px;
+    background-repeat: no-repeat;
+    background-size: 200px;
+}
+
+
+.card:hover {
+    transform: translateY(-20px);
+}
+
+.card .details {
+    width: 80px;
+    padding: 2px;
+    border-radius: 8px;
+    text-align: center;
+    background-color: #ffffff4d;
+    color: #fff;
+}
+
+.card .cardImg {
+    filter: drop-shadow(3px 3px 6px rgba(10, 10, 59, 0.524))
+}
+
+.cardData {
+    display: flex;
+    position: relative;
+    transition: 0.5s;
+    cursor: pointer;
+    color: #fff;
+    margin-top: -15px;
+    gap: 10px;
+}
+
+.cardData .details {
+    width: 80px;
+    padding: 2px;
+    border-radius: 8px;
+    text-align: center;
+    background-color: #ffffff4d;
+    color: #fff;
+}

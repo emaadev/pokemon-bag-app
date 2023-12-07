@@ -1,37 +1,43 @@
-import {
-  Stack,
-  Text,
-  Image,
-  HStack,
-  Badge,
-  AspectRatio,
-} from "@chakra-ui/react";
+import { Stack, Text, Image, Badge, Box, Flex } from "@chakra-ui/react";
 
 export default function PokemonCard({ pokemon }) {
   return (
     <Stack
-      spacing="5"
-      boxShadow="xl"
-      p="5"
-      w="full"
-      borderRadius="xl"
+      className="card"
+      display="flex"
+      flexDirection="row-reverse"
+      justifyContent="space-between"
       alignItems="center"
+      spacing="5"
+      p="4"
+      w="250px"
+      h="150px"
+      borderRadius="xl"
     >
-      <AspectRatio w="full" ratio={1}>
+      <Box width="100%">
         <Image
           src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${pokemon.id}.png`}
+          objectFit="contain"
+          height="150px"
+          className="cardImg"
         />
-      </AspectRatio>
-      <Text textAlign="center" textTransform="Capitalize">
-        {pokemon.name}
-      </Text>
-      <HStack>
+      </Box>
+
+      <Flex flexDirection="column" textAlign="left" gap="8px">
+        <Text
+          textAlign="left"
+          fontSize="18px"
+          fontWeight="700"
+          textTransform="Capitalize"
+        >
+          {pokemon.name}
+        </Text>
         {pokemon.types.map((type) => (
-          <Badge size="xs" key={type.slot}>
+          <Badge className="details" key={type.slot}>
             {type.type.name}
           </Badge>
         ))}
-      </HStack>
+      </Flex>
     </Stack>
   );
 }
