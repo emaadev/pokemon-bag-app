@@ -1,4 +1,21 @@
-# Pokémon Test
+# Resumen de lo realizado
+## Coding
+- Se modifica el método de fetching de datos y se utiliza `try-catch`, permitiendo manejar los errores.
+- Implementación de una paginación de pokemones, permitiendo observar cada 20 pokemones los obtenidos de la API
+- Creación constantes para manejar la información de solicitud de datos
+- Se desestructura la organización principal del código, creando una estructura lo más compacta y ordenada posible
+- Se implementan los datos dinámicos en la `PokemonCard` y `PokemonData`
+
+## Design
+- Se crea el diseño responsive
+- Nuevo diseño UI de las Cards
+- Se agrega un simple Navbar
+- Organización de los datos rediseñada para permitir una mayor accesibilidad al usuario
+- Al hacer capturas y liberaciones de los Pokemones, se muestran avisos para mantener informado al usuario de lo que sucede
+
+
+## Descripción del proyecto:
+## Pokémon Test
 
 El objetivo de la app es listar todos los Pokémon y mostrar información de los mismos al clickear sobre ellos. También la app mostrará de alguna forma los Pokémon que el usuario tiene capturados.
 
